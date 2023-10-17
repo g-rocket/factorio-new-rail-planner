@@ -1,6 +1,36 @@
 var boardLoc = [0,0];
 var squareSize;
 
+var baseRailShapes = [
+    // Straight
+    [0, 2],
+    [2, 0],
+
+    // Diagonal
+    [2,  2],
+    [2, -2],
+    [2,  4],
+    [2, -4],
+    [4,  2],
+    [4, -2],
+
+    // Curves
+    [2,  10],
+    [2, -10],
+    [10,  2],
+    [10, -2],
+    [6,  8],
+    [6, -8],
+    [8,  6],
+    [8, -6],
+
+    // Ramp
+    [16,  3],
+    [16, -3],
+    [0,  13],
+    [0,  19],
+];
+
 // TODO: SVG for rails
 var railPaths = {
     'pawn': 'M20 80 A35 35 0 1 1 80 80 Z M20 90 H80',
@@ -16,6 +46,8 @@ var railPaths = {
 }
 
 var selectedSquare = null;
+var hoverRail = null;
+var rails = [];
 var drag = false;
 
 var canvas, ctx;
@@ -39,6 +71,10 @@ function setup() {
         if(e.buttons & 1) {
             boardLoc[0] -= e.movementX / r.squareSize;
             boardLoc[1] += e.movementY / r.squareSize;
+        } else {
+            var bX = r.bX(e.offsetX);
+            var bY = r.bY(e.offsetY);
+            handleHover(bX, bY);
         }
         renderGame();
     });
@@ -82,21 +118,34 @@ function getRenderParams() {
             return height - y - squareSize;
         },
         bX: function(sX) {
-            return Math.floor(sX / r.squareSize + boardLoc[0]);
+            return 2*Math.round(sX / (2*r.squareSize) + boardLoc[0]);
         },
         bY: function(sY) {
             sY = height - sY - r.squareSize;
-            return Math.floor(sY / r.squareSize + boardLoc[1] + 1);
+            return Math.round(sY / r.squareSize + boardLoc[1] + 1);
         }
     }
 }
 
 function handleClick(bX, bY) {
     if (selectedSquare != null) {
-        // Add a rail
+        if (hoverRail != null) {
+            rails.push(hoverRail);
+        }
         selectedSquare = null;
+        hoverRail = null;
     } else {
         selectedSquare = [bX, bY];
+    }
+}
+
+function handleHover(bX, bY) {
+    if (selectedSquare != null) {
+        [oX, oY] = selectedSquare;
+        // TODO: broken
+        if (baseRailShapes.includes([bX - oX, bY - oY])) {
+            hoverRail = [oX, oY, bX, bY];
+        }
     }
 }
 
@@ -104,15 +153,11 @@ function renderGame() {
     r = getRenderParams();
     ctx.fillStyle = 'rgb(255, 255, 255)';
     ctx.fillRect(0, 0, r.width, r.height);
-    for(var x = r.minX; x < r.maxX; x++) {
-        if(x % 2) {
-            ctx.strokeStyle = 'rgb(200, 200, 200)';
-        } else {
-            ctx.strokeStyle = 'rgb(200, 150, 150)';
-        }
+    for(var x = r.minX; x < r.maxX; x+=2) {
+        ctx.strokeStyle = 'rgb(200, 200, 200)';
         ctx.beginPath();
-        ctx.moveTo(r.sX(x + 0.5), 0);
-        ctx.lineTo(r.sX(x + 0.5), r.height);
+        ctx.moveTo(r.sX(x), 0);
+        ctx.lineTo(r.sX(x), r.height);
         ctx.stroke();
     }
     for(var y = r.minY; y < r.maxY; y++) {
@@ -122,8 +167,8 @@ function renderGame() {
             ctx.strokeStyle = 'rgb(200, 150, 150)';
         }
         ctx.beginPath();
-        ctx.moveTo(0, r.sY(y + 0.5));
-        ctx.lineTo(r.width, r.sY(y + 0.5));
+        ctx.moveTo(0, r.sY(y));
+        ctx.lineTo(r.width, r.sY(y));
         ctx.stroke();
     }
 
@@ -131,7 +176,19 @@ function renderGame() {
     if (selectedSquare != null) {
         var [x, y] = selectedSquare;
         ctx.fillStyle = 'rgb(100, 200, 100)'
-        ctx.fillRect(r.sX(x), r.sY(y), r.squareSize, r.squareSize);
+        ctx.fillRect(r.sX(x-0.5), r.sY(y-0.5), r.squareSize, r.squareSize);
+    }
+
+    if (hoverRail != null) {
+        if (hoverRail[0] % 2) {
+            ctx.strokeStyle = 'rgb(0, 0, 0)';
+        } else {
+            ctx.strokeStyle = 'rgb(100, 0, 0)';
+        }
+        ctx.beginPath();
+        ctx.moveTo(r.sX(hoverRail[0]), r.sY(hoverRail[1]));
+        ctx.lineTo(r.sX(hoverRail[2]), r.sY(hoverRail[3]));
+        ctx.stroke();
     }
 
     // TODO: draw rails
