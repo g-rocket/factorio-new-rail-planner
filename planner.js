@@ -62,10 +62,10 @@ var baseRailShapes = [
 
     // Ramp
     // TODO: control points make no sense
-    [ 16,   3,  0,  0,  8,  1],
-    [ 16,  -3,  0,  0,  8, -1],
-    [-16,   3,  8,  8, -8,  1],
-    [-16,  -3,  8,  8, -8, -1],
+    [ 16,   3,  0,  0,  7,  1],
+    [ 16,  -3,  0,  0,  7, -1],
+    [-16,   3,  8,  8, -7,  1],
+    [-16,  -3,  8,  8, -7, -1],
     [  0,  13,  4,  4,  0,  1],
     [  0,  19,  4,  4,  0,  1],
     [  0, -13, 12, 12,  0, -1],
@@ -195,8 +195,9 @@ function handleHover(bX, bY) {
     if (selectedSquare != null) {
         [oX, oY] = selectedSquare;
         baseRailShapes.forEach(([dX, dY, sD, eD, cX, cY]) => {
-            if (bX - oX == dX && bY - oY == dY && (curDir == null || sD == curDir)) {
+            if (bX - oX == dX && bY - oY == dY && (oX+cX)%2 == 0 && (curDir == null || sD == curDir)) {
                 hoverRail = [oX, oY, oX+cX, oY+cY, bX, bY, sD, eD];
+                console.log(oX+cX, oY+cY)
             }
         });
     }
