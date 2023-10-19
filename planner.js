@@ -1,75 +1,81 @@
 var boardLoc = [0,0];
 var squareSize;
 
-// dx, dy, startDir, endDir
+// dx, dy, startDir, endDir, cpdx, cpdy
 // Directions are in 16ths of a circle, with "0" meaning +x going clockwise
 var baseRailShapes = [
     // Straight
-    [ 2,  0,  0,  0],
-    [ 0,  2,  4,  4],
-    [-2,  0,  8,  8],
-    [ 0, -2, 12, 12],
+    [ 2,  0,  0,  0,  1,  0],
+    [ 0,  2,  4,  4,  0,  1],
+    [-2,  0,  8,  8, -1,  0],
+    [ 0, -2, 12, 12,  0, -1],
 
     // Diagonal
-    [ 2,  2,  2,  2],
-    [-2,  2,  6,  6],
-    [-2, -2, 10, 10],
-    [ 2, -2, 14, 14],
+    [ 2,  2,  2,  2,  0,  0],
+    [-2,  2,  6,  6, -0,  0],
+    [-2, -2, 10, 10, -0, -0],
+    [ 2, -2, 14, 14,  0, -0],
 
     // Half diagonal
-    [ 4,  2,  1,  1],
-    [ 2,  4,  3,  3],
-    [-2, -4,  5,  5],
-    [-4, -2,  7,  7],
-    [-4,  2,  9,  9],
-    [-2,  4, 11, 11],
-    [ 2, -4, 13, 13],
-    [ 4, -2, 15, 15],
+    [ 4,  2,  1,  1,  2,  1],
+    [ 2,  4,  3,  3,  1,  2],
+    [-2,  4,  5,  5, -1,  2],
+    [-4,  2,  7,  7, -2,  1],
+    [-4, -2,  9,  9, -2, -1],
+    [-2, -4, 11, 11, -1, -2],
+    [ 2, -4, 13, 13,  1, -2],
+    [ 4, -2, 15, 15,  2, -1],
 
     // Curves
-    [ 10,   2,  0,  1],
-    [ 10,   2,  1,  0],
-    [  8,   6,  1,  2],
-    [  8,   6,  2,  1],
-    [  6,   8,  2,  3],
-    [  6,   8,  3,  2],
-    [  2,  10,  3,  4],
-    [  2,  10,  4,  3],
-    [ -2,  10,  4,  5],
-    [ -2,  10,  5,  4],
-    [ -6,   8,  5,  6],
-    [ -6,   8,  6,  5],
-    [ -8,   6,  6,  7],
-    [ -8,   6,  7,  6],
-    [-10,   2,  7,  8],
-    [-10,   2,  8,  7],
-    [-10,  -2,  8,  9],
-    [-10,  -2,  9,  8],
-    [ -8,  -6,  9, 10],
-    [ -8,  -6, 10,  9],
-    [ -6,  -8, 10, 11],
-    [ -6,  -8, 11, 10],
-    [ -2, -10, 11, 12],
-    [ -2, -10, 12, 11],
-    [  2, -10, 12, 13],
-    [  2, -10, 13, 12],
-    [  6,  -8, 13, 14],
-    [  6,  -8, 14, 13],
-    [  8,  -6, 14, 15],
-    [  8,  -6, 15, 14],
-    [ 10,  -2, 15,  0],
-    [ 10,  -2,  0, 15],
+    [ 5,  1,  0,  1,  3,  0],
+    [ 5,  1,  1,  0,  2,  1],
+    [ 4,  3,  1,  2,  2,  1],
+    [ 4,  3,  2,  1,  2,  2],
+    [ 3,  4,  2,  3,  2,  2],
+    [ 3,  4,  3,  2,  1,  2],
+    [ 1,  5,  3,  4,  1,  2],
+    [ 1,  5,  4,  3,  0,  3],
+    [-1,  5,  4,  5,  0,  3],
+    [-1,  5,  5,  4, -1,  2],
+    [-3,  4,  5,  6, -1,  2],
+    [-3,  4,  6,  5, -2,  2],
+    [-4,  3,  6,  7, -2,  2],
+    [-4,  3,  7,  6, -2,  1],
+    [-5,  1,  7,  8, -2,  1],
+    [-5,  1,  8,  7, -3,  0],
+    [-5, -1,  8,  9, -3,  0],
+    [-5, -1,  9,  8, -2, -1],
+    [-4, -3,  9, 10, -2, -1],
+    [-4, -3, 10,  9, -2, -2],
+    [-3, -4, 10, 11, -2, -2],
+    [-3, -4, 11, 10, -1, -2],
+    [-1, -5, 11, 12, -1, -2],
+    [-1, -5, 12, 11,  0, -3],
+    [ 1, -5, 12, 13,  0, -3],
+    [ 1, -5, 13, 12,  1, -2],
+    [ 3, -4, 13, 14,  1, -2],
+    [ 3, -4, 14, 13,  2, -2],
+    [ 4, -3, 14, 15,  2, -2],
+    [ 4, -3, 15, 14,  2, -1],
+    [ 5, -1, 15,  0,  2, -1],
+    [ 5, -1,  0, 15,  3,  0],
 
     // Ramp
-    [ 16,   3,  0,  0],
-    [ 16,  -3,  0,  0],
-    [-16,   3,  8,  8],
-    [-16,  -3,  8,  8],
-    [  0,  13,  4,  4],
-    [  0,  19,  4,  4],
-    [  0,  13, 12, 12],
-    [  0,  19, 12, 12],
+    // TODO: control points make no sense
+    [ 16,   3,  0,  0,  8,  1],
+    [ 16,  -3,  0,  0,  8, -1],
+    [-16,   3,  8,  8, -8,  1],
+    [-16,  -3,  8,  8, -8, -1],
+    [  0,  13,  4,  4,  0,  1],
+    [  0,  19,  4,  4,  0,  1],
+    [  0, -13, 12, 12,  0, -1],
+    [  0, -19, 12, 12,  0, -1],
 ];
+
+// TODO: generate data table with for loops
+// for (int el = 0; el <= 1; el++) {
+//     for (int )
+// }
 
 // TODO: SVG for rails
 var railPaths = {
@@ -159,7 +165,7 @@ function getRenderParams() {
             return height - y - squareSize;
         },
         bX: function(sX) {
-            return 2*Math.round((sX / r.squareSize + boardLoc[0])/2);
+            return Math.round(sX / r.squareSize + boardLoc[0]);
         },
         bY: function(sY) {
             sY = height - sY - r.squareSize;
@@ -172,9 +178,14 @@ function handleClick(bX, bY) {
     if (selectedSquare != null) {
         if (hoverRail != null) {
             rails.push(hoverRail);
+            curDir = hoverRail[7]
+            selectedSquare = [hoverRail[4], hoverRail[5]];
+            hoverRail = null;
+        } else {
+            selectedSquare = null;
+            hoverRail = null;
+            curDir = null;
         }
-        selectedSquare = null;
-        hoverRail = null;
     } else {
         selectedSquare = [bX, bY];
     }
@@ -183,10 +194,9 @@ function handleClick(bX, bY) {
 function handleHover(bX, bY) {
     if (selectedSquare != null) {
         [oX, oY] = selectedSquare;
-        // TODO: broken
-        baseRailShapes.forEach(([dX, dY, sD, eD]) => {
-            if (bX - oX == dX && bY - oY == dY) {
-                hoverRail = [oX, oY, bX, bY];
+        baseRailShapes.forEach(([dX, dY, sD, eD, cX, cY]) => {
+            if (bX - oX == dX && bY - oY == dY && (curDir == null || sD == curDir)) {
+                hoverRail = [oX, oY, oX+cX, oY+cY, bX, bY, sD, eD];
             }
         });
     }
@@ -199,11 +209,13 @@ function renderGame() {
     for(var x = r.minX; x < r.maxX; x++) {
         if (x % 2 == 0) {
             ctx.strokeStyle = 'rgb(230, 230, 230)';
-            ctx.beginPath();
-            ctx.moveTo(r.sX(x), 0);
-            ctx.lineTo(r.sX(x), r.height);
-            ctx.stroke();
+        } else {
+            ctx.strokeStyle = 'rgb(245, 245, 245)';
         }
+        ctx.beginPath();
+        ctx.moveTo(r.sX(x), 0);
+        ctx.lineTo(r.sX(x), r.height);
+        ctx.stroke();
     }
     for(var y = r.minY; y < r.maxY; y++) {
         if(y % 2 == 0) {
@@ -225,30 +237,26 @@ function renderGame() {
     }
 
     if (hoverRail != null) {
-        if ((hoverRail[1] + hoverRail[3]) % 2 != 0) {
-            ctx.strokeStyle = 'rgb(100, 0, 0)';
-        } else if (hoverRail[1] % 2 != 0) {
+        if (hoverRail[3] % 2 != 0) {
             ctx.strokeStyle = 'rgb(200, 0, 0)';
         } else {
             ctx.strokeStyle = 'rgb(0, 0, 0)';
         }
         ctx.beginPath();
         ctx.moveTo(r.sX(hoverRail[0]), r.sY(hoverRail[1]));
-        ctx.lineTo(r.sX(hoverRail[2]), r.sY(hoverRail[3]));
+        ctx.quadraticCurveTo(r.sX(hoverRail[2]), r.sY(hoverRail[3]), r.sX(hoverRail[4]), r.sY(hoverRail[5]))
         ctx.stroke();
     }
 
     rails.forEach((rail) => {
-        if ((rail[1] + rail[3]) % 2 != 0) {
-            ctx.strokeStyle = 'rgb(100, 0, 0)';
-        } else if (rail[1] % 2 != 0) {
+        if (rail[3] % 2 != 0) {
             ctx.strokeStyle = 'rgb(200, 0, 0)';
         } else {
             ctx.strokeStyle = 'rgb(0, 0, 0)';
         }
         ctx.beginPath();
         ctx.moveTo(r.sX(rail[0]), r.sY(rail[1]));
-        ctx.lineTo(r.sX(rail[2]), r.sY(rail[3]));
+        ctx.quadraticCurveTo(r.sX(rail[2]), r.sY(rail[3]), r.sX(rail[4]), r.sY(rail[5]))
         ctx.stroke();
     });
 
