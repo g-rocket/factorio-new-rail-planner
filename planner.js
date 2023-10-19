@@ -177,7 +177,12 @@ function getRenderParams() {
 function handleClick(bX, bY) {
     if (selectedSquare != null) {
         if (hoverRail != null) {
-            rails.push(hoverRail);
+            i = rails.findIndex((r) => r.every((e,i) => e == hoverRail[i]));
+            if (i == -1) {
+                rails.push(hoverRail);
+            } else {
+                rails.splice(i,1);
+            }
             curDir = hoverRail[7]
             selectedSquare = [hoverRail[4], hoverRail[5]];
             hoverRail = null;
@@ -197,7 +202,6 @@ function handleHover(bX, bY) {
         baseRailShapes.forEach(([dX, dY, sD, eD, cX, cY]) => {
             if (bX - oX == dX && bY - oY == dY && (oX+cX)%2 == 0 && (curDir == null || sD == curDir)) {
                 hoverRail = [oX, oY, oX+cX, oY+cY, bX, bY, sD, eD];
-                console.log(oX+cX, oY+cY)
             }
         });
     }
@@ -237,18 +241,6 @@ function renderGame() {
         ctx.fillRect(r.sX(x) - r.squareSize/2, r.sY(y) - r.squareSize/2, r.squareSize, r.squareSize);
     }
 
-    if (hoverRail != null) {
-        if (hoverRail[3] % 2 != 0) {
-            ctx.strokeStyle = 'rgb(200, 0, 0)';
-        } else {
-            ctx.strokeStyle = 'rgb(0, 0, 0)';
-        }
-        ctx.beginPath();
-        ctx.moveTo(r.sX(hoverRail[0]), r.sY(hoverRail[1]));
-        ctx.quadraticCurveTo(r.sX(hoverRail[2]), r.sY(hoverRail[3]), r.sX(hoverRail[4]), r.sY(hoverRail[5]))
-        ctx.stroke();
-    }
-
     rails.forEach((rail) => {
         if (rail[3] % 2 != 0) {
             ctx.strokeStyle = 'rgb(200, 0, 0)';
@@ -260,6 +252,18 @@ function renderGame() {
         ctx.quadraticCurveTo(r.sX(rail[2]), r.sY(rail[3]), r.sX(rail[4]), r.sY(rail[5]))
         ctx.stroke();
     });
+
+    if (hoverRail != null) {
+        if (hoverRail[3] % 2 != 0) {
+            ctx.strokeStyle = 'rgb(200, 0, 200)';
+        } else {
+            ctx.strokeStyle = 'rgb(0, 200, 200)';
+        }
+        ctx.beginPath();
+        ctx.moveTo(r.sX(hoverRail[0]), r.sY(hoverRail[1]));
+        ctx.quadraticCurveTo(r.sX(hoverRail[2]), r.sY(hoverRail[3]), r.sX(hoverRail[4]), r.sY(hoverRail[5]))
+        ctx.stroke();
+    }
 
     // TODO: draw rails properly
     // for(var player in pieces) {
