@@ -165,6 +165,9 @@ function setup() {
         boardLoc[1] -= (oy / squareSize) - (oy / oldSize);
         renderGame();
     })
+    codearea = document.getElementById('codearea');
+    codearea.addEventListener('keyup', loadCodeString);
+    loadCodeString();
 }
 
 function getRenderParams() {
@@ -212,6 +215,7 @@ function handleClick(bX, bY) {
             curDir = hoverRail[7]
             selectedSquare = [hoverRail[4], hoverRail[5]];
             hoverRail = null;
+            document.getElementById("codearea").value = JSON.stringify(rails);
         } else {
             selectedSquare = null;
             hoverRail = null;
@@ -326,4 +330,16 @@ function renderGame() {
     //         }
     //     }
     // }
+}
+
+function loadCodeString() {
+    let railsObj;
+    try {
+        railsObj = JSON.parse(document.getElementById('codearea').value);
+    } catch(e) {
+        console.error('Error loading codestring: ' + e);
+        return;
+    }
+    rails = railsObj;
+    renderGame();
 }
