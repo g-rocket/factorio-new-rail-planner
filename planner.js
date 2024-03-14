@@ -73,7 +73,10 @@ var baseRailShapes = [
 ];
 
 rampBoxes = [
-    [[]]
+    [19, -2, 16, 4,16],
+    [13, -2, 13, 4,16],
+    [ 3,  0,  2,16, 4],
+    [-3,  0, -1,16, 4],
 ];
 
 function normalizeRail(rail) {
@@ -283,7 +286,12 @@ function renderGame() {
 
         if (isRamp(rail)) {
             // Ramp
-            
+            rampBoxes.forEach((shape) => {
+                if (rail[5] - rail[1] == shape[0]) {
+                    ctx.fillStyle = 'rgba(0,0,0,0.3)'
+                    ctx.fillRect(r.sX(rail[0] + shape[1]), r.sY(rail[1] + shape[2]), shape[3]*r.squareSize, shape[4]*r.squareSize);
+                }
+            });
         }
     });
 
