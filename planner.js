@@ -6,8 +6,8 @@ var squareSize;
 var baseRailShapes = [
     // Straight
     [ 2,  0,  0,  0,  1,  0],
-    [ 0,  2,  4,  4,  0,  1],
-    [-2,  0,  8,  8, -1,  0],
+    [ 0,  2,  4,  4, -0,  1],
+    [-2,  0,  8,  8, -1, -0],
     [ 0, -2, 12, 12,  0, -1],
 
     // Diagonal
@@ -62,15 +62,37 @@ var baseRailShapes = [
 
     // Ramp
     // TODO: control points make no sense
-    [ 16,   3,  0,  0,  7,  1],
-    [ 16,  -3,  0,  0,  7, -1],
-    [-16,   3,  8,  8, -7,  1],
-    [-16,  -3,  8,  8, -7, -1],
-    [  0,  13,  4,  4,  0,  1],
-    [  0,  19,  4,  4,  0,  1],
-    [  0, -13, 12, 12,  0, -1],
-    [  0, -19, 12, 12,  0, -1],
+    [ 16,   3,  0,  0,  7,   1],
+    [ 16,  -3,  0,  0,  9,  -2],
+    [-16,   3,  8,  8, -7,   1],
+    [-16,  -3,  8,  8, -9,  -2],
+    [  0,  13,  4,  4,  0,   1],
+    [  0,  19,  4,  4,  0,   2],
+    [  0, -13, 12, 12,  0, -12],
+    [  0, -19, 12, 12,  0, -17],
 ];
+
+rampBoxes = [
+    [[]]
+];
+
+function normalizeRail(rail) {
+    if (rail[6] > 7) {
+        return [
+            rail[4], rail[5],
+            rail[2], rail[3],
+            rail[0], rail[1],
+            (rail[7] + 8) % 16,
+            (rail[6] + 8) % 16
+        ];
+    } else {
+        return rail;
+    }
+}
+
+function isRamp(rail) {
+    return rail[6] == rail[7] && (rail[5] - rail[1]) % 2 != 0;
+}
 
 // TODO: generate data table with for loops
 // for (int el = 0; el <= 1; el++) {
@@ -177,9 +199,10 @@ function getRenderParams() {
 function handleClick(bX, bY) {
     if (selectedSquare != null) {
         if (hoverRail != null) {
-            i = rails.findIndex((r) => r.every((e,i) => e == hoverRail[i]));
+            hoverRailN = normalizeRail(hoverRail)
+            i = rails.findIndex((r) => r.every((e,i) => e == hoverRailN[i]));
             if (i == -1) {
-                rails.push(hoverRail);
+                rails.push(hoverRailN);
             } else {
                 rails.splice(i,1);
             }
@@ -194,6 +217,7 @@ function handleClick(bX, bY) {
     } else {
         selectedSquare = [bX, bY];
     }
+    console.log(JSON.stringify(rails))
 }
 
 function handleHover(bX, bY) {
@@ -201,7 +225,10 @@ function handleHover(bX, bY) {
         [oX, oY] = selectedSquare;
         baseRailShapes.forEach(([dX, dY, sD, eD, cX, cY]) => {
             if (bX - oX == dX && bY - oY == dY && (oX+cX)%2 == 0 && (curDir == null || sD == curDir)) {
-                hoverRail = [oX, oY, oX+cX, oY+cY, bX, bY, sD, eD];
+                maybeHoverRail = [oX, oY, oX+cX, oY+cY, bX, bY, sD, eD];
+                if (!isRamp(maybeHoverRail) || maybeHoverRail[3] % 2 == 1) {
+                    hoverRail = maybeHoverRail;
+                }
             }
         });
     }
@@ -242,7 +269,9 @@ function renderGame() {
     }
 
     rails.forEach((rail) => {
-        if (rail[3] % 2 != 0) {
+        if (isRamp(rail)) {
+            ctx.strokeStyle = 'rgb(100, 0, 0)';
+        } else if (rail[3] % 2 != 0) {
             ctx.strokeStyle = 'rgb(200, 0, 0)';
         } else {
             ctx.strokeStyle = 'rgb(0, 0, 0)';
@@ -251,6 +280,11 @@ function renderGame() {
         ctx.moveTo(r.sX(rail[0]), r.sY(rail[1]));
         ctx.quadraticCurveTo(r.sX(rail[2]), r.sY(rail[3]), r.sX(rail[4]), r.sY(rail[5]))
         ctx.stroke();
+
+        if (isRamp(rail)) {
+            // Ramp
+            
+        }
     });
 
     if (hoverRail != null) {
