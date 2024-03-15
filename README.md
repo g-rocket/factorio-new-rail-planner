@@ -1,8 +1,8 @@
-#A tool for planning factorio rail junctions using the new 2.0.0 rail features.
+# A tool for planning factorio rail junctions using the new 2.0.0 rail features.
 
 Featuring new rails from FFF-377 and elevated rails from FFF-378
 
-##Examples:
+## Examples:
 
 [4-way intersection](4-way-intersection.json):  
 ![4-way intersection](4-way-intersection.png)
@@ -10,7 +10,7 @@ Featuring new rails from FFF-377 and elevated rails from FFF-378
 [Recreation](fff-378-simple-junction.json) of [simple junction from FFF-378](https://cdn.factorio.com/assets/blog-sync/fff-378-junction-simple.png):
 ![simple intersection from fff-378](fff-378-simple-junction.png)
 
-##Display:
+## Display:
 
 - Light gray and red display the tile grid.
 - Black lines are ground-level rails; Red lines are elevated rails.
@@ -18,7 +18,7 @@ Featuring new rails from FFF-377 and elevated rails from FFF-378
 - Green square shows currently selected location
 - Teal/magenta lines show rail that will be placed when you click. (Teal for ground level, magenta for elevated).
 
-##Instructions:
+## Instructions:
 
 - Click to select the start location
 - Hover over the end locations of a rail segment to show candidate rails starting there; click to place the rail.
@@ -26,12 +26,12 @@ Featuring new rails from FFF-377 and elevated rails from FFF-378
 - Go over a rail again to delete it.
 - Copy the code string (listed in a text box at the bottom) to save your design, or paste a code string in there to load a design.
 
-##Known bugs:
+## Known bugs:
 
 - Sometimes, the forward and reverse directions of a rail are not considered identical, so trying to delete a rail instead adds an identical rail in the opposite direction.
 - You might have to type (spaces) in the code string text box to get it to load
 
-##Planned features:
+## Planned features:
 
 - Supports:
   - Allow you to place supports at the intersection of two elevated rails, and show a grey shadow for their footprint.
