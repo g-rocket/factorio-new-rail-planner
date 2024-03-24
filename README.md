@@ -28,7 +28,6 @@ Featuring new rails from FFF-377 and elevated rails from FFF-378
 
 ## Known bugs:
 
-- Sometimes, the forward and reverse directions of a rail are not considered identical, so trying to delete a rail instead adds an identical rail in the opposite direction.
 - You might have to type (spaces) in the code string text box to get it to load
 
 ## Planned features:
