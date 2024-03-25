@@ -84,7 +84,7 @@ function max(a, b) {
 }
 
 function normalizeRail(rail) {
-    if (rail[6] + rail[7] > 15 || max(rail[6], rail[7]) > 8) {
+    if (!isSupport(rail) && (rail[6] + rail[7] > 15 || max(rail[6], rail[7]) > 8)) {
         return [
             rail[4], rail[5],
             rail[2], rail[3],
@@ -110,6 +110,14 @@ function isRamp(rail) {
     return rail[6] == rail[7] && (rail[5] - rail[1]) % 2 != 0;
 }
 
+function isSupport(rail) {
+    return rail[7] - rail[6] == 8;
+}
+
+function isElevated(rail) {
+    return rail[3] % 2 != 0 && !isSupport(rail) && !isRamp(rail);
+}
+
 // TODO: generate data table with for loops
 // for (int el = 0; el <= 1; el++) {
 //     for (int )
@@ -129,11 +137,24 @@ var railPaths = {
     'queen': 'M20 80 V20 H80 V80 Z L50 30 L80 80 M20 90 H80',
 }
 
+// [x, y]
 var selectedSquare = null;
+
+// Rail, same format as an element from rails below
 var hoverRail = null;
+
+// 0-15, increasing CCW from +x
 var curDir = null;
+
+// [[oX, oY, cX, cY, eX, eY, oD, eD]]
+// o -> origin, c -> control point, e -> end, D = direction
 var rails = [];
+
+
 var drag = false;
+
+// 'rails' / 'supports'
+var mode = 'rails';
 
 var canvas, ctx;
 function setup() {
@@ -165,7 +186,7 @@ function setup() {
     });
     canvas.addEventListener('mousedown', function(e) {
         drag = false;
-    })
+    });
     canvas.addEventListener('wheel', function(e) {
         e.preventDefault();
         var oldSize = squareSize;
@@ -177,7 +198,48 @@ function setup() {
         var oy = canvas.height - e.offsetY;
         boardLoc[1] -= (oy / squareSize) - (oy / oldSize);
         renderGame();
-    })
+    });
+    document.addEventListener('keyup', function(e) {
+        switch(e.key) {
+            case "Escape":
+                selectedSquare = null;
+                hoverRail = null;
+                curDir = null;
+                mode = 'rails';
+                break;
+            case "ArrowUp":
+            case "w":
+                // TODO: hover a straight rail
+                break;
+            case "ArrowLeft":
+            case "a":
+                // TODO: hover a left-turn rail
+                break;
+            case "ArrowRight":
+            case "d":
+                // TODO: hover a right-turn rail
+                break;
+            case "Tab":
+            case "q":
+                // TODO: hover a ramp
+                break;
+            case "ArrowDown":
+                // What do I want to do here?
+                break;
+            case " ":
+                // TODO: accept the current hovered rail
+                break;
+            case "s":
+                selectedSquare = null;
+                hoverRail = null;
+                curDir = null;
+                mode = 'supports';
+                break;
+            default:
+                return;
+        }
+        renderGame();
+    });
     codearea = document.getElementById('codearea');
     codearea.addEventListener('keyup', loadCodeString);
     loadCodeString();
@@ -216,24 +278,28 @@ function getRenderParams() {
 }
 
 function handleClick(bX, bY) {
-    if (selectedSquare != null) {
-        if (hoverRail != null) {
-            hoverRailN = normalizeRail(hoverRail)
-            i = rails.findIndex((r) => r.every((e,i) => e == hoverRailN[i]));
-            if (i == -1) {
-                rails.push(hoverRailN);
-            } else {
-                rails.splice(i,1);
-            }
+    if (hoverRail != null) {
+        hoverRailN = normalizeRail(hoverRail)
+        i = rails.findIndex((r) => r.every((e,i) => e == hoverRailN[i]));
+        if (i == -1) {
+            rails.push(hoverRailN);
+        } else {
+            rails.splice(i,1);
+        }
+        if (mode == 'rails') {
             curDir = hoverRail[7]
             selectedSquare = [hoverRail[4], hoverRail[5]];
-            hoverRail = null;
-            document.getElementById("codearea").value = JSON.stringify(rails);
-        } else {
-            selectedSquare = null;
-            hoverRail = null;
+        } else if (mode == 'supports') {
             curDir = null;
+            selectedSquare = null;
+            mode = 'rails';
         }
+        hoverRail = null;
+        document.getElementById("codearea").value = JSON.stringify(rails);
+    } else if (selectedSquare != null) {
+        selectedSquare = null;
+        hoverRail = null;
+        curDir = null;
     } else {
         selectedSquare = [bX, bY];
     }
@@ -241,7 +307,24 @@ function handleClick(bX, bY) {
 }
 
 function handleHover(bX, bY) {
-    if (selectedSquare != null) {
+    if (mode == 'supports') {
+        i = rails.findIndex((r) => {
+            if (isElevated(r)) {
+                if (r[0] == bX && r[1] == bY) return true;
+                if (r[4] == bX && r[5] == bY) return true;
+                return false;
+            }
+        });
+        if (i != -1) {
+            let dir;
+            if (bX == rails[i][0] && bY == rails[i][1]) {
+                dir = rails[i][6];
+            } else {
+                dir = rails[i][7];
+            }
+            hoverRail = [bX, bY, bX, bY - (bY%2), bX, bY-3, dir%8, dir%8 + 8];
+        }
+    } else if (selectedSquare != null) {
         [oX, oY] = selectedSquare;
         baseRailShapes.forEach(baseRail => {
             [baseRail, reverseRail(baseRail)].forEach(([dX, dY, sD, eD, cX, cY]) => {
@@ -254,10 +337,22 @@ function handleHover(bX, bY) {
             });
         });
     }
+    if (hoverRail != null) {
+        console.log(hoverRail);
+    }
 }
 
 function renderGame() {
     r = getRenderParams();
+    drawBackground(r);
+    drawSelectedSquare(r);
+    rails.forEach((rail) => drawRail(r, rail, false));
+    if (hoverRail != null) {
+        drawRail(r, normalizeRail(hoverRail), true);
+    }
+}
+
+function drawBackground(r) {
     ctx.fillStyle = 'rgb(255, 255, 255)';
     ctx.fillRect(0, 0, r.width, r.height);
     for(var x = r.minX; x < r.maxX; x++) {
@@ -282,15 +377,26 @@ function renderGame() {
         ctx.lineTo(r.width, r.sY(y));
         ctx.stroke();
     }
+}
 
+function drawSelectedSquare(r) {
     // TODO: probably delete this; just for testing
     if (selectedSquare != null) {
         var [x, y] = selectedSquare;
         ctx.fillStyle = 'rgb(100, 200, 100)'
         ctx.fillRect(r.sX(x) - r.squareSize/2, r.sY(y) - r.squareSize/2, r.squareSize, r.squareSize);
     }
+}
 
-    rails.forEach((rail) => {
+
+function drawRail(r, rail, isHoverRail) {
+    if (isHoverRail) {
+        if (rail[3] % 2 != 0) {
+            ctx.strokeStyle = 'rgb(200, 0, 200)';
+        } else {
+            ctx.strokeStyle = 'rgb(0, 200, 200)';
+        }
+    } else {
         if (isRamp(rail)) {
             ctx.strokeStyle = 'rgb(100, 0, 0)';
         } else if (rail[3] % 2 != 0) {
@@ -298,54 +404,60 @@ function renderGame() {
         } else {
             ctx.strokeStyle = 'rgb(0, 0, 0)';
         }
-        ctx.beginPath();
-        ctx.moveTo(r.sX(rail[0]), r.sY(rail[1]));
-        ctx.quadraticCurveTo(r.sX(rail[2]), r.sY(rail[3]), r.sX(rail[4]), r.sY(rail[5]))
-        ctx.stroke();
-
-        if (isRamp(rail)) {
-            // Ramp
-            rampBoxes.forEach((shape) => {
-                if (rail[5] - rail[1] == shape[0]) {
-                    ctx.fillStyle = 'rgba(0,0,0,0.3)'
-                    ctx.fillRect(r.sX(rail[0] + shape[1]), r.sY(rail[1] + shape[2]), shape[3]*r.squareSize, shape[4]*r.squareSize);
-                }
-            });
-        }
-    });
-
-    if (hoverRail != null) {
-        if (hoverRail[3] % 2 != 0) {
-            ctx.strokeStyle = 'rgb(200, 0, 200)';
-        } else {
-            ctx.strokeStyle = 'rgb(0, 200, 200)';
-        }
-        ctx.beginPath();
-        ctx.moveTo(r.sX(hoverRail[0]), r.sY(hoverRail[1]));
-        ctx.quadraticCurveTo(r.sX(hoverRail[2]), r.sY(hoverRail[3]), r.sX(hoverRail[4]), r.sY(hoverRail[5]))
-        ctx.stroke();
     }
+    ctx.beginPath();
+    ctx.moveTo(r.sX(rail[0]), r.sY(rail[1]));
+    ctx.quadraticCurveTo(r.sX(rail[2]), r.sY(rail[3]), r.sX(rail[4]), r.sY(rail[5]))
+    ctx.stroke();
 
-    // TODO: draw rails properly
-    // for(var player in pieces) {
-    //     for(var pieceName in pieces[player]) {
-    //         for(var piece of pieces[player][pieceName]) {
-    //             if(player == 'white') {
-    //                 ctx.fillStyle = 'rgb(255, 255, 255)'
-    //             } else {
-    //                 ctx.fillStyle = 'rgb(255, 0, 0)'
-    //             }
-    //             ctx.strokeStyle = 'rgb(0, 0, 0)'
-    //             var piecePath = new Path2D(piecePaths[pieceName])
-    //             ctx.save();
-    //             ctx.transform(r.squareSize/100, 0, 0, r.squareSize/100, r.sX(piece[0]), r.sY(piece[1]));
-    //             ctx.fill(piecePath);
-    //             ctx.stroke(piecePath);
-    //             ctx.restore();
-    //         }
-    //     }
-    // }
+    if (isRamp(rail)) {
+        // Ramp
+        rampBoxes.forEach((shape) => {
+            if (rail[5] - rail[1] == shape[0]) {
+                if (isHoverRail) {
+                    ctx.fillStyle = 'rgba(100,100,0,0.3)'
+                } else {
+                    ctx.fillStyle = 'rgba(0,0,0,0.3)'
+                }
+                ctx.fillRect(r.sX(rail[0] + shape[1]), r.sY(rail[1] + shape[2]), shape[3]*r.squareSize, shape[4]*r.squareSize);
+            }
+        });
+    } else if (isSupport(rail)) {
+        if (isHoverRail) {
+            ctx.fillStyle = 'rgba(100,100,0,0.3)'
+        } else {
+            ctx.fillStyle = 'rgba(0,0,0,0.3)'
+        }
+        if (rail[6] % 4 == 0) {
+            ctx.fillRect(r.sX(rail[0] - 2), r.sY(rail[1] - 1), 4*r.squareSize, 4*r.squareSize);
+        } else {
+            ctx.fillRect(r.sX(rail[0] - 1), r.sY(rail[1] - 1), 2*r.squareSize, 1*r.squareSize);
+            ctx.fillRect(r.sX(rail[0] - 2), r.sY(rail[1] - 2), 4*r.squareSize, 2*r.squareSize);
+            ctx.fillRect(r.sX(rail[0] - 1), r.sY(rail[1] - 4), 2*r.squareSize, 1*r.squareSize);
+        }
+    }
 }
+
+// TODO: draw rails properly
+// for(var player in pieces) {
+//     for(var pieceName in pieces[player]) {
+//         for(var piece of pieces[player][pieceName]) {
+//             if(player == 'white') {
+//                 ctx.fillStyle = 'rgb(255, 255, 255)'
+//             } else {
+//                 ctx.fillStyle = 'rgb(255, 0, 0)'
+//             }
+//             ctx.strokeStyle = 'rgb(0, 0, 0)'
+//             var piecePath = new Path2D(piecePaths[pieceName])
+//             ctx.save();
+//             ctx.transform(r.squareSize/100, 0, 0, r.squareSize/100, r.sX(piece[0]), r.sY(piece[1]));
+//             ctx.fill(piecePath);
+//             ctx.stroke(piecePath);
+//             ctx.restore();
+//         }
+//     }
+// }
+
 
 function loadCodeString() {
     let railsObj;

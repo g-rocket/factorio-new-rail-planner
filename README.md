@@ -25,6 +25,8 @@ Featuring new rails from FFF-377 and elevated rails from FFF-378
 - Further rails after the first are constrained to be in the same direction as the path you are drawing. Click with no hovered rail shown (double-click) to deselect the path.
 - Go over a rail again to delete it.
 - Copy the code string (listed in a text box at the bottom) to save your design, or paste a code string in there to load a design.
+- Press "s" to enter support mode. Hover over elevated rail ends to show supports, and click to place
+- Press "escape" to cancel whatever is shown.
 
 ## Known bugs:
 
@@ -33,7 +35,6 @@ Featuring new rails from FFF-377 and elevated rails from FFF-378
 ## Planned features:
 
 - Supports:
-  - Allow you to place supports at the intersection of two elevated rails, and show a grey shadow for their footprint.
   - Calculate whether elevated rails are properly supported, and highlight unsupported elevated rails.
 - Signals:
   - From [an image on FFF-377](fff-377-signal-positions-and-rail-segment-visualisation-annotated.png), we have probably enough information to figure out where you can put signals. I should let you place rail signals, and visualize that somehow.
