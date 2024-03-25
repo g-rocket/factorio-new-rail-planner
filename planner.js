@@ -337,9 +337,6 @@ function handleHover(bX, bY) {
             });
         });
     }
-    if (hoverRail != null) {
-        console.log(hoverRail);
-    }
 }
 
 function renderGame() {
