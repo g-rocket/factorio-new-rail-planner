@@ -1,6 +1,6 @@
 # A tool for planning factorio rail junctions using the new 2.0.0 rail features.
 
-Featuring new rails from FFF-377 and elevated rails from FFF-378
+Featuring new rails from [FFF-377](https://www.factorio.com/blog/post/fff-377) and elevated rails from [FFF-378](https://www.factorio.com/blog/post/fff-378)
 
 ## Examples:
 
@@ -35,7 +35,7 @@ Featuring new rails from FFF-377 and elevated rails from FFF-378
 ## Planned features:
 
 - Supports:
-  - Calculate whether elevated rails are properly supported, and highlight unsupported elevated rails.
+  - Calculate whether elevated rails are properly supported, and highlight unsupported elevated rails, using stats from [this forum post](https://forums.factorio.com/viewtopic.php?p=592880#p592880).
 - Signals:
   - From [an image on FFF-377](fff-377-signal-positions-and-rail-segment-visualisation-annotated.png), we have probably enough information to figure out where you can put signals. I should let you place rail signals, and visualize that somehow.
 - Can we do collision detection?
@@ -47,5 +47,4 @@ Featuring new rails from FFF-377 and elevated rails from FFF-378
 - Maybe a better way to export as an image instead of just taking a screenshot?
 - Better graphics
 - Allow the canvas to resize if you have a bigger / smaller screen
-- Press escape to clear selection
 
