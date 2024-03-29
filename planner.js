@@ -1,75 +1,48 @@
 var boardLoc = [0,0];
 var squareSize;
 
-// dx, dy, startDir, endDir, cpdx, cpdy
+// dx, dy, startDir, endDir, cpdx, cpdy, length
 // Directions are in 16ths of a circle, with "0" meaning +x going clockwise
 var baseRailShapes = [
     // Straight
-    [ 2,  0,  0,  0,  1,  0],
-    [ 0,  2,  4,  4, -0,  1],
-    // [-2,  0,  8,  8, -1, -0],
-    // [ 0, -2, 12, 12,  0, -1],
+    [ 2,  0,  0,  0,  1,  0, 2.00],
+    [ 0,  2,  4,  4, -0,  1, 2.00],
 
     // Diagonal
-    [ 2,  2,  2,  2,  0,  0],
-    [-2,  2,  6,  6, -0,  0],
-    // [-2, -2, 10, 10, -0, -0],
-    // [ 2, -2, 14, 14,  0, -0],
+    [ 2,  2,  2,  2,  0,  0, 2.83],
+    [-2,  2,  6,  6, -0,  0, 2.83],
 
     // Half diagonal
-    [ 4,  2,  1,  1,  2,  1],
-    [ 2,  4,  3,  3,  1,  2],
-    [-2,  4,  5,  5, -1,  2],
-    [-4,  2,  7,  7, -2,  1],
-    // [-4, -2,  9,  9, -2, -1],
-    // [-2, -4, 11, 11, -1, -2],
-    // [ 2, -4, 13, 13,  1, -2],
-    // [ 4, -2, 15, 15,  2, -1],
+    [ 4,  2,  1,  1,  2,  1, 4.48],
+    [ 2,  4,  3,  3,  1,  2, 4.48],
+    [-2,  4,  5,  5, -1,  2, 4.48],
+    [-4,  2,  7,  7, -2,  1, 4.48],
 
     // Curves
-    [ 5,  1,  0,  1,  3,  0],
-    [ 5,  1,  1,  0,  2,  1],
-    [ 4,  3,  1,  2,  2,  1],
-    [ 4,  3,  2,  1,  2,  2],
-    [ 3,  4,  2,  3,  2,  2],
-    [ 3,  4,  3,  2,  1,  2],
-    [ 1,  5,  3,  4,  1,  2],
-    [ 1,  5,  4,  3,  0,  3],
-    [-1,  5,  4,  5,  0,  3],
-    [-1,  5,  5,  4, -1,  2],
-    [-3,  4,  5,  6, -1,  2],
-    [-3,  4,  6,  5, -2,  2],
-    [-4,  3,  6,  7, -2,  2],
-    [-4,  3,  7,  6, -2,  1],
-    [-5,  1,  7,  8, -2,  1],
-    [-5,  1,  8,  7, -3,  0],
-    // [-5, -1,  8,  9, -3,  0],
-    // [-5, -1,  9,  8, -2, -1],
-    // [-4, -3,  9, 10, -2, -1],
-    // [-4, -3, 10,  9, -2, -2],
-    // [-3, -4, 10, 11, -2, -2],
-    // [-3, -4, 11, 10, -1, -2],
-    // [-1, -5, 11, 12, -1, -2],
-    // [-1, -5, 12, 11,  0, -3],
-    // [ 1, -5, 12, 13,  0, -3],
-    // [ 1, -5, 13, 12,  1, -2],
-    // [ 3, -4, 13, 14,  1, -2],
-    // [ 3, -4, 14, 13,  2, -2],
-    // [ 4, -3, 14, 15,  2, -2],
-    // [ 4, -3, 15, 14,  2, -1],
-    // [ 5, -1, 15,  0,  2, -1],
-    // [ 5, -1,  0, 15,  3,  0],
+    [ 5,  1,  0,  1,  3,  0, 5.14],
+    [ 5,  1,  1,  0,  2,  1, 5.14],
+    [ 4,  3,  1,  2,  2,  1, 5.08],
+    [ 4,  3,  2,  1,  2,  2, 5.08],
+    [ 3,  4,  2,  3,  2,  2, 5.08],
+    [ 3,  4,  3,  2,  1,  2, 5.08],
+    [ 1,  5,  3,  4,  1,  2, 5.14],
+    [ 1,  5,  4,  3,  0,  3, 5.14],
+    [-1,  5,  4,  5,  0,  3, 5.14],
+    [-1,  5,  5,  4, -1,  2, 5.14],
+    [-3,  4,  5,  6, -1,  2, 5.08],
+    [-3,  4,  6,  5, -2,  2, 5.08],
+    [-4,  3,  6,  7, -2,  2, 5.08],
+    [-4,  3,  7,  6, -2,  1, 5.08],
+    [-5,  1,  7,  8, -2,  1, 5.14],
+    [-5,  1,  8,  7, -3,  0, 5.14],
 
     // Ramp
     // TODO: control points make no sense
-    [ 16,   3,  0,  0,  7,   1],
-    [ 16,  -3,  0,  0,  9,  -2],
-    //[-16,   3,  8,  8, -7,   1],
-    //[-16,  -3,  8,  8, -9,  -2],
-    [  0,  13,  4,  4,  0,   1],
-    [  0,  19,  4,  4,  0,   2],
-    //[  0, -13, 12, 12,  0, -12],
-    //[  0, -19, 12, 12,  0, -17],
+    // Ramp lengths don't make much sense either, but don't matter much
+    [ 16,   3,  0,  0,  7,   1, 2],
+    [ 16,  -3,  0,  0,  9,  -2, 2],
+    [  0,  13,  4,  4,  0,   1, 2],
+    [  0,  19,  4,  4,  0,   2, 2],
 ];
 
 rampBoxes = [
@@ -83,6 +56,18 @@ function max(a, b) {
     return a > b? a: b;
 }
 
+function mod(a, b) {
+    return (a + b) % b;
+}
+
+function isEven(a) {
+    return mod(a, 2) == 0;
+}
+
+function isOdd(a) {
+    return mod(a, 2) != 0;
+}
+
 function normalizeRail(rail) {
     if (!isSupport(rail) && (rail[6] + rail[7] > 15 || max(rail[6], rail[7]) > 8)) {
         return [
@@ -90,32 +75,34 @@ function normalizeRail(rail) {
             rail[2], rail[3],
             rail[0], rail[1],
             (rail[7] + 8) % 16,
-            (rail[6] + 8) % 16
+            (rail[6] + 8) % 16,
+            rail[8], rail[9],
         ];
     } else {
         return rail;
     }
 }
 
-function reverseRail(rail) {
+function reverseRailShape(rail) {
     return [
         -rail[0], -rail[1],
         (rail[3] + 8) % 16,
         (rail[2] + 8) % 16,
         rail[4]-rail[0], rail[5]-rail[1],
+        rail[6],
     ];
 }
 
 function isRamp(rail) {
-    return rail[6] == rail[7] && (rail[5] - rail[1]) % 2 != 0;
+    return rail[6] == rail[7] && isOdd(rail[5] - rail[1]);
 }
 
 function isSupport(rail) {
-    return rail[7] - rail[6] == 8;
+    return rail[8] == 0;
 }
 
 function isElevated(rail) {
-    return rail[3] % 2 != 0 && !isSupport(rail) && !isRamp(rail);
+    return isOdd(rail[3]) && !isSupport(rail) && !isRamp(rail);
 }
 
 // TODO: generate data table with for loops
@@ -280,11 +267,14 @@ function getRenderParams() {
 function handleClick(bX, bY) {
     if (hoverRail != null) {
         hoverRailN = normalizeRail(hoverRail)
-        i = rails.findIndex((r) => r.every((e,i) => e == hoverRailN[i]));
+        i = rails.findIndex((r) => r.slice(0,7).every((e,i) => e == hoverRailN[i]));
         if (i == -1) {
             rails.push(hoverRailN);
         } else {
             rails.splice(i,1);
+        }
+        if (isElevated(hoverRailN) || isSupport(hoverRailN) || isRamp(hoverRailN)) {
+            recalcSupport();
         }
         if (mode == 'rails') {
             curDir = hoverRail[7]
@@ -322,21 +312,69 @@ function handleHover(bX, bY) {
             } else {
                 dir = rails[i][7];
             }
-            hoverRail = [bX, bY, bX, bY - (bY%2), bX, bY-3, dir%8, dir%8 + 8];
+            hoverRail = [bX, bY, bX, bY - mod(bY,2), bX, bY-3, dir%8, dir%8 + 8, 0, 0];
         }
     } else if (selectedSquare != null) {
         [oX, oY] = selectedSquare;
         baseRailShapes.forEach(baseRail => {
-            [baseRail, reverseRail(baseRail)].forEach(([dX, dY, sD, eD, cX, cY]) => {
-                if (bX - oX == dX && bY - oY == dY && (oX+cX)%2 == 0 && (curDir == null || sD == curDir)) {
-                    maybeHoverRail = [oX, oY, oX+cX, oY+cY, bX, bY, sD, eD];
-                    if (!isRamp(maybeHoverRail) || maybeHoverRail[3] % 2 == 1) {
+            [baseRail, reverseRailShape(baseRail)].forEach(([dX, dY, sD, eD, cX, cY, l]) => {
+                if (bX - oX == dX && bY - oY == dY && isEven(oX+cX) && (curDir == null || sD == curDir)) {
+                    maybeHoverRail = [oX, oY, oX+cX, oY+cY, bX, bY, sD, eD, l, 0];
+                    if (!isRamp(maybeHoverRail) || isOdd(maybeHoverRail[3])) {
                         hoverRail = maybeHoverRail;
                     }
                 }
             });
         });
     }
+}
+
+// Elevated rails have 3 extra params that are used for calculating support
+function recalcSupport() {
+    rails.forEach((r) => {
+        if (isElevated(r)) {
+            r[9] = 0;
+        }
+    });
+
+    rails.forEach((r) => {
+        if (isSupport(r)) {
+            // Supports support for 11 units in both directions
+            addSupport(r[0], r[1], r[6], 11);
+            addSupport(r[0], r[1], r[7], 11);
+        } else if (isRamp(r)) {
+            // Technically we should only do this at the top,
+            // but the bottom of a ramp can't connect to an elevated rail
+            // so it shouldn't matter :)
+            addSupport(r[0], r[1], r[6], 9);
+            addSupport(r[4], r[5], r[7], 9);
+        }
+    })
+}
+
+function addSupport(x, y, dir, lengthRemaining) {
+    findElevatedNeighbors(x, y, dir, (r, isStart) => {
+        if (lengthRemaining > r[8]) {
+            r[9] = 1;
+            if (isStart) {
+                addSupport(r[4], r[5], r[7], lengthRemaining - r[8]);
+            } else {
+                addSupport(r[0], r[1], r[6], lengthRemaining - r[8]);
+            }
+        }
+    });
+}
+
+function findElevatedNeighbors(x, y, dir, callback) {
+    rails.forEach((r) => {
+        if (isElevated(r)) {
+            if (r[0] == x && r[1] == y && r[6] == dir) {
+                callback(r, true);
+            } else if (r[4] == x && r[5] == y && r[7] == dir) {
+                callback(r, false);
+            }
+        }
+    });
 }
 
 function renderGame() {
@@ -353,7 +391,7 @@ function drawBackground(r) {
     ctx.fillStyle = 'rgb(255, 255, 255)';
     ctx.fillRect(0, 0, r.width, r.height);
     for(var x = r.minX; x < r.maxX; x++) {
-        if (x % 2 == 0) {
+        if (isEven(x)) {
             ctx.strokeStyle = 'rgb(230, 230, 230)';
         } else {
             ctx.strokeStyle = 'rgb(245, 245, 245)';
@@ -364,7 +402,7 @@ function drawBackground(r) {
         ctx.stroke();
     }
     for(var y = r.minY; y < r.maxY; y++) {
-        if(y % 2 == 0) {
+        if(isEven(y)) {
             ctx.strokeStyle = 'rgb(230, 230, 230)';
         } else {
             ctx.strokeStyle = 'rgb(240, 220, 220)';
@@ -387,8 +425,20 @@ function drawSelectedSquare(r) {
 
 
 function drawRail(r, rail, isHoverRail) {
+    if (!isHoverRail && isElevated(rail) && rail[9] == 0) {
+        ctx.strokeStyle = 'rgb(0, 0, 200)';
+        ctx.setLineDash([5,5]);
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(r.sX(rail[0]), r.sY(rail[1]));
+        ctx.quadraticCurveTo(r.sX(rail[2]), r.sY(rail[3]), r.sX(rail[4]), r.sY(rail[5]))
+        ctx.stroke();
+        ctx.lineWidth = 1;
+        ctx.setLineDash([]);
+    }
+
     if (isHoverRail) {
-        if (rail[3] % 2 != 0) {
+        if (isOdd(rail[3])) {
             ctx.strokeStyle = 'rgb(200, 0, 200)';
         } else {
             ctx.strokeStyle = 'rgb(0, 200, 200)';
@@ -396,7 +446,7 @@ function drawRail(r, rail, isHoverRail) {
     } else {
         if (isRamp(rail)) {
             ctx.strokeStyle = 'rgb(100, 0, 0)';
-        } else if (rail[3] % 2 != 0) {
+        } else if (isOdd(rail[3])) {
             ctx.strokeStyle = 'rgb(200, 0, 0)';
         } else {
             ctx.strokeStyle = 'rgb(0, 0, 0)';
