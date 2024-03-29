@@ -346,7 +346,7 @@ function recalcSupport() {
             // Technically we should only do this at the top,
             // but the bottom of a ramp can't connect to an elevated rail
             // so it shouldn't matter :)
-            addSupport(r[0], r[1], r[6], 9);
+            addSupport(r[0], r[1], (r[6]+8)%16, 9);
             addSupport(r[4], r[5], r[7], 9);
         }
     })
@@ -359,7 +359,7 @@ function addSupport(x, y, dir, lengthRemaining) {
             if (isStart) {
                 addSupport(r[4], r[5], r[7], lengthRemaining - r[8]);
             } else {
-                addSupport(r[0], r[1], r[6], lengthRemaining - r[8]);
+                addSupport(r[0], r[1], (r[6]+8)%16, lengthRemaining - r[8]);
             }
         }
     });
@@ -370,7 +370,7 @@ function findElevatedNeighbors(x, y, dir, callback) {
         if (isElevated(r)) {
             if (r[0] == x && r[1] == y && r[6] == dir) {
                 callback(r, true);
-            } else if (r[4] == x && r[5] == y && r[7] == dir) {
+            } else if (r[4] == x && r[5] == y && r[7] == (dir+8)%16) {
                 callback(r, false);
             }
         }
