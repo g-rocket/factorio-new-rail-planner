@@ -4,17 +4,19 @@ Featuring new rails from [FFF-377](https://www.factorio.com/blog/post/fff-377) a
 
 ## Examples:
 
-[4-way intersection](4-way-intersection.json):  
-![4-way intersection](4-way-intersection.png)
+[4-way intersection](examples/cloverleaf-support.json):  
+![4-way intersection](examples/cloverleaf-support.png)
 
-[Recreation](fff-378-simple-junction.json) of [simple junction from FFF-378](https://cdn.factorio.com/assets/blog-sync/fff-378-junction-simple.png):
-![simple intersection from fff-378](fff-378-simple-junction.png)
+[Recreation](examples/fff-378-simple-junction.json) of [simple junction from FFF-378](https://cdn.factorio.com/assets/blog-sync/fff-378-junction-simple.png):
+![simple intersection from fff-378](examples/fff-378-simple-junction.png)
 
 ## Display:
 
-- Light gray and red display the tile grid.
+- Light gray and light red display the tile grid.
 - Black lines are ground-level rails; Red lines are elevated rails.
+- If elevated rails are unsupported, they will have blue dashes. (Support calculations are from [this forum post](https://forums.factorio.com/viewtopic.php?p=592880#p592880)).
 - Dark red lines are ramps; the grey "shadow" shows the footprint of the ramp.
+- Supports show as vertical black lines with a grey "shadow" for the footprint.
 - Green square shows currently selected location
 - Teal/magenta lines show rail that will be placed when you click. (Teal for ground level, magenta for elevated).
 
@@ -34,8 +36,6 @@ Featuring new rails from [FFF-377](https://www.factorio.com/blog/post/fff-377) a
 
 ## Planned features:
 
-- Supports:
-  - Calculate whether elevated rails are properly supported, and highlight unsupported elevated rails, using stats from [this forum post](https://forums.factorio.com/viewtopic.php?p=592880#p592880).
 - Signals:
   - From [an image on FFF-377](fff-377-signal-positions-and-rail-segment-visualisation-annotated.png), we have probably enough information to figure out where you can put signals. I should let you place rail signals, and visualize that somehow.
 - Can we do collision detection?
